@@ -1,5 +1,7 @@
 import base64
 
+import aiohttp
+
 from nakamapy.services.logger import Logger
 
 logger = Logger()
@@ -42,8 +44,19 @@ class Nakama:
     def base_url(self):
         return f'{self.server_type}://{self.server_ip}:{self.server_port}/{self.server_version}'
 
+    @property
+    def base_header(self):
+        return {
+            'Authorization': f'Basic {self.server_key_b64}'
+        }
+
     async def authenticate_device(self):
         pass
 
     async def authenticate_email(self, email: str, password: str):
-        return self.server_key_b64
+        _data = {'email': email, 'password': password}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/email?create=true&username=mycustomusername',
+                    json=_data, headers=self.base_header) as resp:
+                return await resp.json()
