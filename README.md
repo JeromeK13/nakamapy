@@ -1,6 +1,5 @@
 # nakamapy
-Python Wrapper for the [Nakama Server](https://github.com/heroiclabs/nakama/)
-
+A partly implemented OOP Python-Wrapper for [Nakama Server](https://github.com/heroiclabs/nakama/)
 
 ## Examples
 
