@@ -6,6 +6,7 @@ import aiohttp
 from nakamapy.services.error import NakamaError
 from nakamapy.services.logger import Logger
 from nakamapy.services.session import NakamaSession
+from nakamapy.services.socket import NakamaSocket
 
 logger = Logger()
 
@@ -153,3 +154,7 @@ class Nakama:
                     raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
                                       message=r['message'])
                 return NakamaSession(token=r['token'])
+
+    # Create Socket
+    def create_socket(self) -> NakamaSocket:
+        return NakamaSocket(socket_ip=self.server_ip, socket_port=self.server_port)
