@@ -1,4 +1,5 @@
 import base64
+from uuid import getnode
 
 import aiohttp
 
@@ -51,17 +52,28 @@ class Nakama:
             'Authorization': f'Basic {self.server_key_b64}'
         }
 
-    async def authenticate_device(self):
-        pass
-
-    async def authenticate_email(self, email: str, password: str) -> dict:
-        _data = {'email': email, 'password': password}
+    async def authenticate_device(self, username: str, create_user: bool = True) -> dict:
+        _data = {'id': str(getnode())}
+        _params = {'create': str(create_user).lower(), 'username': username}
         async with aiohttp.ClientSession() as session:
             async with session.post(
-                    f'{self.base_url}/account/authenticate/email?create=true&username=mycustomusername',
+                    f'{self.base_url}/account/authenticate/device', params=_params,
                     json=_data, headers=self.base_header) as resp:
-                r = await resp.json()
                 if resp.status != 200:
+                    r = await resp.json()
                     raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
                                       message=r['message'])
-                return await r.json()
+                return await resp.json()
+
+    async def authenticate_email(self, email: str, password: str, username: str, create_user: bool = True) -> dict:
+        _data = {'email': email, 'password': password}
+        _params = {'create': str(create_user).lower(), 'username': username}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/email', params=_params,
+                    json=_data, headers=self.base_header) as resp:
+                if resp.status != 200:
+                    r = await resp.json()
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return await resp.json()
