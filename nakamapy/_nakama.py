@@ -48,10 +48,9 @@ class Nakama:
 
     @property
     def base_header(self) -> dict:
-        return {
-            'Authorization': f'Basic {self.server_key_b64}'
-        }
+        return {'Authorization': f'Basic {self.server_key_b64}'}
 
+    # Auth Device
     async def authenticate_device(self, username: str, create_user: bool = True) -> dict:
         _data = {'id': str(getnode())}
         _params = {'create': str(create_user).lower(), 'username': username}
@@ -65,12 +64,87 @@ class Nakama:
                                       message=r['message'])
                 return await resp.json()
 
+    # Auth Email
     async def authenticate_email(self, email: str, password: str, username: str, create_user: bool = True) -> dict:
         _data = {'email': email, 'password': password}
         _params = {'create': str(create_user).lower(), 'username': username}
         async with aiohttp.ClientSession() as session:
             async with session.post(
                     f'{self.base_url}/account/authenticate/email', params=_params,
+                    json=_data, headers=self.base_header) as resp:
+                if resp.status != 200:
+                    r = await resp.json()
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return await resp.json()
+
+    # Auth Facebook
+    async def authenticate_facebook(self, token: str, username: str, create_user: bool = True,
+                                    import_friends: bool = True) -> dict:
+        _data = {'token': token}
+        _params = {'create': str(create_user).lower(), 'username': username, 'import': str(import_friends).lower()}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/facebook', params=_params,
+                    json=_data, headers=self.base_header) as resp:
+                if resp.status != 200:
+                    r = await resp.json()
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return await resp.json()
+
+    # Auth Google
+    async def authenticate_google(self, token: str, username: str, create_user: bool = True) -> dict:
+        _data = {'token': token}
+        _params = {'create': str(create_user).lower(), 'username': username}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/google', params=_params,
+                    json=_data, headers=self.base_header) as resp:
+                if resp.status != 200:
+                    r = await resp.json()
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return await resp.json()
+
+    # Auth Game Center
+    async def authenticate_game_center(self, player_id: str, bundle_id: str, salt: str, signature: str,
+                                       public_key_url: str, username: str, create_user: bool = True,
+                                       timestamp_seconds: int = 0) -> dict:
+        _data = {'player_id': player_id, 'bundle_id': bundle_id, 'timestamp_seconds': timestamp_seconds, 'salt': salt,
+                 'signature': signature, 'public_key_url': public_key_url}
+        _params = {'create': str(create_user).lower(), 'username': username}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/gamecenter', params=_params,
+                    json=_data, headers=self.base_header) as resp:
+                if resp.status != 200:
+                    r = await resp.json()
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return await resp.json()
+
+    # Auth Steam -> You need to configure the Server to support SteamAuth
+    async def authenticate_steam(self, token: str, username: str, create_user: bool = True) -> dict:
+        _data = {'token': token}
+        _params = {'create': str(create_user).lower(), 'username': username}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/steam', params=_params,
+                    json=_data, headers=self.base_header) as resp:
+                if resp.status != 200:
+                    r = await resp.json()
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return await resp.json()
+
+    # Auth Custom
+    async def authenticate_custom(self, custom_id: str, username: str, create_user: bool = True) -> dict:
+        _data = {'id': custom_id}
+        _params = {'create': str(create_user).lower(), 'username': username}
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                    f'{self.base_url}/account/authenticate/custom', params=_params,
                     json=_data, headers=self.base_header) as resp:
                 if resp.status != 200:
                     r = await resp.json()
