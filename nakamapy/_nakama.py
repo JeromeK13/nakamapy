@@ -3,6 +3,7 @@ from uuid import getnode
 
 import aiohttp
 
+from nakamapy.services.account import NakamaAccount
 from nakamapy.services.error import NakamaError
 from nakamapy.services.logger import Logger
 from nakamapy.services.session import NakamaSession
@@ -51,6 +52,8 @@ class Nakama:
     @property
     def base_header(self) -> dict:
         return {'Authorization': f'Basic {self.server_key_b64}'}
+
+    # Auth Section
 
     # Auth Device
     async def authenticate_device(self, username: str, create_user: bool = True) -> NakamaSession:
@@ -158,3 +161,18 @@ class Nakama:
     # Create Socket
     def create_socket(self) -> NakamaSocket:
         return NakamaSocket(socket_ip=self.server_ip, socket_port=self.server_port)
+
+    # TODO: Implement un-linking of accounts
+    async def link_login(self):
+        pass
+
+    async def fetch_account(self, session_token: NakamaSession) -> NakamaAccount:
+        headers = {'Authorization': f'Bearer {session_token}'}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                    f'{self.base_url}/account', headers=headers) as resp:
+                r = await resp.json()
+                if resp.status != 200:
+                    raise NakamaError(http_code=resp.status, error_name=r['error'], grpc_code=r['code'],
+                                      message=r['message'])
+                return NakamaAccount(r)
